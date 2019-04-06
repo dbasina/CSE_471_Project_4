@@ -235,7 +235,23 @@ class ExactInference(InferenceModule):
         positions after a time update from a particular position.
         """
         "*** YOUR CODE HERE ***"
-        return;
+        #Iterate over each position that ghost can be in legally
+        # For each of these positions that ghost can be in,
+        # for each position:
+        # - calculate the probability distribution over next state
+        # - we get some (state,prob) in newposdist
+        # - for each state in newposdist, we need to increment the likelyhood of ghost being in the next state
+        # - likely hood of ghost in next state:
+        # - update = P(oldPos)*P(newPos|currentPos)
+        # - P(oldPos) extract from self.beliefs.
+        allPossilbe = util.Counter()
+        for oldPos in self.legalPositions:
+            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+            for newPos, prob in newPosDist.items():
+                update = self.beliefs[oldPos] * prob
+                allPossilbe[newPos] = allPossilbe[newPos] + update
+        allPossilbe.normalize();
+        self.beliefs = allPossilbe
 
     def getBeliefDistribution(self):
         return self.beliefs
