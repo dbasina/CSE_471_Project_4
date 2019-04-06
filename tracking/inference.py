@@ -147,24 +147,40 @@ class ExactInference(InferenceModule):
         noisyDistance = observation
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
-
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
-
         # Replace this code with a correct observation update
         # Be sure to handle the "jail" edge case where the ghost is eaten
         # and noisyDistance is None
         allPossible = util.Counter()
-        for p in self.legalPositions:
-            trueDistance = util.manhattanDistance(p, pacmanPosition)
-            if emissionModel[trueDistance] > 0:
-                allPossible[p] = 1.0
 
+        # If ghost is eaten
+        if (noisyDistance == None):
+            """
+            -Here we have to place ghost in jail.
+            -update the self.beliefs:
+                we set P(trueDistance|noisyDistance) = 1 for  
+            """
+            jailPosition = self.getJailPosition()
+            self.setGhostPosition(gameState,jailPosition)
+            trueDistance = util.manhattanDistance(jailPosition,pacmanPosition)
+            for p in self.legalPositions:
+                if (p!= jailPosition):
+                    allPossible[p] = self.beliefs[p]*emissionModel[trueDistance]
+            allPossible[jailPosition] = 1.0
+        else:
+            """ we need to find P(trueDistance|noisyDistance) = P(noisyDistance|trueDistance) * P (trueDistance)
+            Since algo is iterative, we start with initializing P(trueDistance) = 1 for all ghost positions p"""
+            for p in self.legalPositions:
+                trueDistance = util.manhattanDistance(p, pacmanPosition)
+                if (emissionModel[trueDistance] > 0):
+                    allPossible[p] = self.beliefs[p]*emissionModel[trueDistance]
+            
         "*** END YOUR CODE HERE ***"
-
         allPossible.normalize()
         self.beliefs = allPossible
 
+            
+		
     def elapseTime(self, gameState):
         """
         Update self.beliefs in response to a time step passing from the current
@@ -219,7 +235,7 @@ class ExactInference(InferenceModule):
         positions after a time update from a particular position.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return;
 
     def getBeliefDistribution(self):
         return self.beliefs
