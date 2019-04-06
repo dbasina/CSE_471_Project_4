@@ -156,11 +156,35 @@ class GreedyBustersAgent(BustersAgent):
              indices into this list should be 1 less than indices into the
              gameState.getLivingGhosts() list.
         """
+        print "Start"       
         pacmanPosition = gameState.getPacmanPosition()
+        print "PacmanPosition = ",pacmanPosition
         legal = [a for a in gameState.getLegalPacmanActions()]
         livingGhosts = gameState.getLivingGhosts()
-        livingGhostPositionDistributions = \
-            [beliefs for i, beliefs in enumerate(self.ghostBeliefs)
-             if livingGhosts[i+1]]
+        livingGhostPositionDistributions = self.ghostBeliefs
+
+        likelyPositions = []
+        for i in range(1,len(livingGhosts)):
+            if (livingGhosts[i] == True):
+                
+                # get max value key in livingGhostPositionDistributions[i-1]
+                ghostPositionDistribution = livingGhostPositionDistributions[i-1]
+                likelyPosition = ghostPositionDistribution.argMax()
+                likelyPositions.append(likelyPosition)
+        print "likely Positions List:",likelyPositions
+        distances = util.Counter()
+        for i in likelyPositions:
+            distances[i] = self.distancer.getDistance(pacmanPosition,i)
+        print "Target distances = ",distances
+
+        sortedTargets = distances.sortedKeys()
+        target = sortedTargets[len(sortedTargets)-1]
+        print "target is,",target
+        preferredAction = util.Counter()
+        for action in legal:
+            successorPosition = Actions.getSuccessor(pacmanPosition, action)
+            preferredAction[action] = self.distancer.getDistance(successorPosition,target)
+        sortedActions = preferredAction.sortedKeys();
+        print "returned Action = ",sortedActions[0],"\n"
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return sortedActions[len(sortedActions)-1]
